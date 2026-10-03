@@ -3,45 +3,57 @@ import { useEffect, useState } from "react";
 import {
   Button,
   FlatList,
-  StyleSheet,
-  Text,
+  StyleSheet,  
+  Text,    
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as SQLite from "expo-sqlite";
 
-const db = SQLite.openDatabaseSync("bordel.db");
+const db = SQLite.openDatabaseSync("flores.db");
 
 db.execSync(`
 
 
-  CREATE TABLE IF NOT EXISTS bordel (
+  CREATE TABLE IF NOT EXISTS flores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    texto TEXT NOT NULL,
-    cor TEXT
+    texto VARCHAR(255) NOT NULL,
+    cor VARCHAR(255) NOT NULL,
+    tipo VARCHAR(255) NOT NULL
   );
 `);
 
 function listar() {
-  return db.getAllSync("SELECT * FROM bordel ORDER BY id DESC");
+  return db.getAllSync("SELECT * FROM flores ORDER BY id DESC");
 }
 
-function adicionar(texto, cor) {
+function salvar(texto, cor, tipo) {
   db.runSync(
-    "INSERT INTO bordel (texto, cor) VALUES (?, ?)",
-    [texto, cor]
+    "INSERT INTO flores (texto, cor, tipo) VALUES (?, ?, ?)",
+    [texto, cor, tipo]
   );
 }
 
 function excluir(id) {
-  db.runSync("DELETE FROM bordel WHERE id = ?", [id]);
+  db.runSync("DELETE FROM flores WHERE id = ?", [id]);
+}
+
+function edita(texto, cor, tipo, id) {
+  db.runSync("UPDATE flores SET texto = ?, cor = ?, tipo = ? WHERE id = ?", [
+    texto,
+    cor,
+    tipo, 
+    id,
+  ]);
 }
 
 export default function ListaDb() {
   const [texto, setTexto] = useState("");
   const [cor, setCor] = useState("");
+  const [tipo, setTipo] = useState("");
   const [lista, setLista] = useState([]);
+  const [idEditando, setIdEditando] = useState(0);
 
   function carregar() {
     setLista(listar());
@@ -51,39 +63,62 @@ export default function ListaDb() {
     carregar();
   }, []);
 
-  function salvar() {
-    adicionar(texto, cor);
-
+  function guardarOuEditar() {
+    if (idEditando === 0) {
+      salvar(texto, cor, tipo);
+    } else {
+      edita(texto, cor, tipo, idEditando);
+    }
     setTexto("");
     setCor("");
-
+    setTipo("");
+    setIdEditando(0);
     carregar();
   }
 
   function remover(id) {
     excluir(id);
     carregar();
+  }  
+
+  function editar(flores) {
+    setIdEditando(flores.id);
+    setTexto(flores.texto);
+    setCor(flores.cor);
+    setTipo(flores.tipo);
   }
+
+  useEffect(() => {
+    carregar();
+  }, []);
 
   return (
     <SafeAreaView style={styles.tela} edges={["bottom"]}>
-      <Stack.Screen options={{ title: "Cartório" }} />
+      <Stack.Screen options={{ title: "Floricultura" }} />
 
       <TextInput
         style={styles.campo}
         value={texto}
         onChangeText={setTexto}
-        placeholder="Digite o melhor nome para o seu Bordel aqui ;)"
+        placeholder="Digite o melhor nome para sua flor aqui ;)"
       />
 
       <TextInput
         style={styles.campo}
         value={cor}
         onChangeText={setCor}
-        placeholder="Indique para nós a cor mais instigante do seu estabelecimento"
+        placeholder="Indique para nós a cor predominante da sua flor."
       />
 
-      <Button title="Adicionar" onPress={salvar} />
+      <TextInput
+        style={styles.campo}
+        value={tipo}
+        onChangeText={setTipo}
+        placeholder="Me diga o nome ciêntifico dela."
+      />
+
+
+      <Button title="Salvar" onPress={guardarOuEditar} />
 
       <FlatList
         style={styles.lista}
@@ -93,13 +128,23 @@ export default function ListaDb() {
           <View style={styles.item}>
             <View>
               <Text style={styles.itemTexto}>
-                Tarefa: {item.texto}
+                Nome: {item.texto}
               </Text>
 
               <Text style={styles.itemTexto}>
                 Cor: {item.cor}
               </Text>
+
+            <Text style={styles.itemTexto}>
+                Tipo: {item.tipo}
+              </Text>
             </View>
+
+            <Button
+              title="Editar"
+              onPress={() => {editar(item);
+              }}
+            />
 
             <Button
               title="Excluir"

@@ -34,6 +34,14 @@ export default function Inicio() {
           Abrir a porta do cartório →
         </Link>
       </View>
+
+      <View style={styles.cartao}>
+        <Text style={styles.cartaoTitulo}>Floricultura</Text>
+        <Text style={styles.detalhe}>Venha frlorear e armazenar conosco.</Text>
+        <Link href="/flores" style={styles.link}>
+          Abrir a porta da floricultura →
+        </Link>
+      </View>
     </SafeAreaView>
   );
 }
