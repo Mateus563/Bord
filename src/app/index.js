@@ -37,7 +37,7 @@ export default function Inicio() {
 
       <View style={styles.cartao}>
         <Text style={styles.cartaoTitulo}>Floricultura</Text>
-        <Text style={styles.detalhe}>Venha frlorear e armazenar conosco.</Text>
+        <Text style={styles.detalhe}>Venha florear e armazenar conosco.</Text>
         <Link href="/flores" style={styles.link}>
           Abrir a porta da floricultura →
         </Link>
